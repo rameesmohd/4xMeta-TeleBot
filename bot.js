@@ -8,8 +8,9 @@ const seenUsers = new Set();
 
 bot.start( async (ctx) => {
   const userId = ctx.from.id;
-  if (!seenUsers.has(userId)) {
   const user = ctx.from;
+
+  if (!seenUsers.has(userId)) {
     try {
         axiosPost(`/save-user`, {
           telegramId: user?.id,
@@ -24,6 +25,7 @@ bot.start( async (ctx) => {
       console.error("❌ Failed to send user data:", err.response?.data || err.message);
     }
   }
+
   await ctx.reply(
     `👋 Welcome *${user.first_name}*!\n\nWelcome to 4xMeta Bot 🚀`,
     {
@@ -37,5 +39,6 @@ bot.start( async (ctx) => {
   );
 });
 
+
 bot.launch();
-console.log("🚀 Telegram Bot Started");
+console.log("🚀 Telegram Bot Started..");
