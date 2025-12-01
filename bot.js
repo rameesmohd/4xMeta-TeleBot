@@ -10,6 +10,7 @@ const seenUsers = new Set();
 bot.start(async (ctx) => {
   const userId = ctx.from.id;
   const user = ctx.from;
+  const referredBy = ctx.startPayload 
   
   if (!seenUsers.has(userId)) {
     try {
@@ -20,6 +21,7 @@ bot.start(async (ctx) => {
         username: user.username || null,
         language_code: user.language_code || null,
         is_premium: user.is_premium || false,
+        referred_by: referredBy,
       });
       seenUsers.add(userId);
       console.log(`✅ User ${userId} saved successfully`);
