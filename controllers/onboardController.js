@@ -42,6 +42,6 @@ export async function sendOnboardMessage(ctx, msg) {
     console.log(`📨 Sent onboarding message #${msg.order}`);
 
   } catch (err) {
-    console.log("❌ Send Failed:", err.response?.data || err.message);
+    console.log("❌ Send Failed:", err);    
   }
 }

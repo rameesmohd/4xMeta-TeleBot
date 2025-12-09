@@ -27,47 +27,37 @@ bot.start(async (ctx) => {
 
       seenUsers.add(userId);
       console.log(`✅ User ${userId} saved successfully`);
+
+      // 🔥 FETCH onboarding messages
+      const messages = await axiosGet("/onboard/list");    
+      if(messages.length){
+        messages.sort((a, b) => a.order - b.order);
+        
+        // Send automatically with delay
+        messages.forEach((msg) => {
+          setTimeout(() => sendOnboardMessage(ctx, msg), msg.delayMinutes * 60 * 1000);
+        });
+      }
     } catch (err) {
       console.error("❌ Failed:", err.response?.data || err.message);
     }
   }
 
-  try {
-    // 🔥 FETCH onboarding messages
-    const messages = await axiosGet("/onboard/list");  // DIRECT
-    console.log(messages, "messages");
-    
-    // Sort by order
-    messages.sort((a, b) => a.order - b.order);
-
-    // Send automatically with delay
-    messages.forEach((msg) => {
-      setTimeout(() => sendOnboardMessage(ctx, msg), msg.delayMinutes * 60 * 1000);
-    });
-  } catch (error) {
-    console.error("❌ Failed:", err.response?.data || err.message);
-  }
-  
   //---------------------------------------------------
   // WEBAPP LINK WITH MANAGER ID
   //---------------------------------------------------
-  const webAppUrl = `https://app.4xmeta.com/?id=543919`;
+  const webAppUrl = process.env.WEBAPP_URL || `https://app.4xmeta.com/?id=543919`;
   
   await ctx.reply(
-    `👋 Welcome *${user.first_name}*!\n\nWelcome to 4xMeta Bot 🚀`,
-    {
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { 
-              text: "Open WebApp", 
-              web_app: { url: webAppUrl } 
-            }
-          ],
-        ],
-      },
-    }
+  `📈 *Welcome aboard, ${ctx.from.first_name}!* \n\nManager selected successfully. Let’s start growing your portfolio.\n\nTap below to open the WebApp ➡️`,
+  {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "Open Manager", web_app: { url: webAppUrl } }]
+      ],
+    },
+  }
   );
 });
 
