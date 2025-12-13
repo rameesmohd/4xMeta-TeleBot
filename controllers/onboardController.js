@@ -1,9 +1,25 @@
 export async function sendOnboardMessage(ctx, msg) {
-  const keyboard = msg.buttons?.length
-    ? {
-        inline_keyboard: msg.buttons.map((b) => [{ text: b.text, url: b.url }])
-      }
-    : undefined;
+ const keyboard = msg.buttons?.length
+  ? {
+      inline_keyboard: msg.buttons.map((btn) => {
+        if (btn.type === "webapp") {
+          return [
+            {
+              text: btn.text,
+              web_app: { url: btn.url },
+            },
+          ];
+        }
+
+        return [
+          {
+            text: btn.text,
+            url: btn.url,
+          },
+        ];
+      }),
+    }
+  : undefined;
 
   try {
     switch (msg.type) {

@@ -49,7 +49,7 @@ bot.start(async (ctx) => {
   const webAppUrl = process.env.WEBAPP_URL || `https://app.4xmeta.com/?id=543919`;
   
   await ctx.reply(
-  `📈 *Welcome aboard, ${ctx.from.first_name}!* \n\nManager selected successfully. Let’s start growing your portfolio.\n\nTap below to open the WebApp ➡️`,
+  `📈 *Welcome aboard, ${ctx.from.first_name}!* \n\nManager selected successfully. Let’s start growing your portfolio.\n\nTap below to open the WebApp ⬇️`,
   {
     parse_mode: "Markdown",
     reply_markup: {
