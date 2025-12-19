@@ -1,6 +1,11 @@
+import { convertToTelegramHtml } from "../utils/convertToTelegramHtml";
+
 export async function sendOnboardMessage(ctx, msg) {
- const keyboard = msg.buttons?.length
-  ? {
+
+  const telegramCaption = msg.caption ? convertToTelegramHtml(msg.caption) : "";
+
+  const keyboard = msg.buttons?.length ? 
+    {
       inline_keyboard: msg.buttons.map((btn) => {
         if (btn.type === "webapp") {
           return [
@@ -24,7 +29,7 @@ export async function sendOnboardMessage(ctx, msg) {
   try {
     switch (msg.type) {
       case "text":
-        await ctx.reply(msg.caption, {
+        await ctx.reply(telegramCaption, {
           reply_markup: keyboard,
           parse_mode: "HTML",
         });
@@ -32,22 +37,25 @@ export async function sendOnboardMessage(ctx, msg) {
 
       case "image":
         await ctx.replyWithPhoto(msg.fileId, {
-          caption: msg.caption,
+          caption: telegramCaption,
           reply_markup: keyboard,
+          parse_mode: "HTML", // ✅ Add parse_mode for captions too
         });
         break;
 
       case "video":
         await ctx.replyWithVideo(msg.fileId, {
-          caption: msg.caption,
+          caption: telegramCaption,
           reply_markup: keyboard,
+          parse_mode: "HTML", // ✅ Add parse_mode
         });
         break;
 
       case "audio":
         await ctx.replyWithAudio(msg.fileId, {
-          caption: msg.caption,
+          caption: telegramCaption,
           reply_markup: keyboard,
+          parse_mode: "HTML", // ✅ Add parse_mode
         });
         break;
 
