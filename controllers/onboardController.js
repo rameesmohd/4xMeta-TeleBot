@@ -1,4 +1,4 @@
-import { convertToTelegramHtml } from "../utils/convertToTelegramHtml";
+import { convertToTelegramHtml } from "../utils/convertToTelegramHtml.js";
 
 export async function sendOnboardMessage(ctx, msg) {
 
