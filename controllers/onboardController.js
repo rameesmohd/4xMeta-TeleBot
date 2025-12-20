@@ -1,6 +1,7 @@
 import { convertToTelegramHtml } from "../utils/convertToTelegramHtml.js";
+import { axiosGet } from '../secureApi.js';
 
-export async function sendOnboardMessage(ctx, msg) {
+const sendOnboardMessage=async(ctx, msg)=>{
 
   const telegramCaption = msg.caption ? convertToTelegramHtml(msg.caption) : "";
 
@@ -66,6 +67,30 @@ export async function sendOnboardMessage(ctx, msg) {
     console.log(`📨 Sent onboarding message #${msg.order}`);
 
   } catch (err) {
-    console.log("❌ Send Failed:", err);    
+    console.log("❌ Send onboarding failed:", err);    
   }
+}
+
+const fetchOnBoardMessages=async()=>{
+  try {
+    // 🔥 FETCH onboarding messages
+    const messages = await axiosGet("/onboard/list");    
+    console.log(messages);
+    
+    if(messages.length>0){
+      messages.sort((a, b) => a.order - b.order);
+      
+      // Send automatically with delay
+      messages.forEach((msg) => {
+        setTimeout(() => sendOnboardMessage(ctx, msg), msg.delayMinutes * 60 * 1000);
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export {
+  sendOnboardMessage,
+  fetchOnBoardMessages
 }
