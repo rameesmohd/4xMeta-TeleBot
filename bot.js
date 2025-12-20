@@ -13,7 +13,7 @@ bot.start(async (ctx) => {
   const user = ctx.from;
   const refCode = ctx.startPayload || null
   
-  if (!seenUsers.has(userId)) {
+  // if (!seenUsers.has(userId)) {
     try {
       await axiosPost("/save-user", {
         telegramId: user?.id,
@@ -30,6 +30,8 @@ bot.start(async (ctx) => {
 
       // 🔥 FETCH onboarding messages
       const messages = await axiosGet("/onboard/list");    
+      console.log(messages);
+      
       if(messages.length>0){
         messages.sort((a, b) => a.order - b.order);
         
@@ -41,7 +43,7 @@ bot.start(async (ctx) => {
     } catch (err) {
       console.error("❌ Failed:", err.response?.data || err.message);
     }
-  }
+  // }
 
   //---------------------------------------------------
   // WEBAPP LINK WITH MANAGER ID

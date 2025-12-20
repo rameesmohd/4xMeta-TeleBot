@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "dev": "nodemon bot.js"
+  },
   "dependencies": {
     "axios": "^1.13.2",
     "crypto": "^1.0.1",
