@@ -29,7 +29,7 @@ bot.start(async (ctx) => {
   }
   );
 
-  fetchOnBoardMessages()
+  fetchOnBoardMessages(ctx)
 });
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

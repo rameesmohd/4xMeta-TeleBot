@@ -71,7 +71,7 @@ const sendOnboardMessage=async(ctx, msg)=>{
   }
 }
 
-const fetchOnBoardMessages=async()=>{
+const fetchOnBoardMessages=async(ctx)=>{
   try {
     // 🔥 FETCH onboarding messages
     const messages = await axiosGet("/onboard/list");    
