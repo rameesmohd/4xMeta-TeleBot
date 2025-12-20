@@ -75,12 +75,8 @@ const fetchOnBoardMessages=async()=>{
   try {
     // 🔥 FETCH onboarding messages
     const messages = await axiosGet("/onboard/list");    
-    console.log(messages);
-    
-    if(messages.length>0){
+    if(messages.length>0){  
       messages.sort((a, b) => a.order - b.order);
-      
-      // Send automatically with delay
       messages.forEach((msg) => {
         setTimeout(() => sendOnboardMessage(ctx, msg), msg.delayMinutes * 60 * 1000);
       });
