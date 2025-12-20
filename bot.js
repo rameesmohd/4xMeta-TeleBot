@@ -30,7 +30,7 @@ bot.start(async (ctx) => {
 
       // 🔥 FETCH onboarding messages
       const messages = await axiosGet("/onboard/list");    
-      if(messages.length){
+      if(messages.length>0){
         messages.sort((a, b) => a.order - b.order);
         
         // Send automatically with delay

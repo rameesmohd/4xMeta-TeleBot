@@ -39,7 +39,7 @@ export async function sendOnboardMessage(ctx, msg) {
         await ctx.replyWithPhoto(msg.fileId, {
           caption: telegramCaption,
           reply_markup: keyboard,
-          parse_mode: "HTML", // ✅ Add parse_mode for captions too
+          parse_mode: "HTML", 
         });
         break;
 
@@ -47,7 +47,7 @@ export async function sendOnboardMessage(ctx, msg) {
         await ctx.replyWithVideo(msg.fileId, {
           caption: telegramCaption,
           reply_markup: keyboard,
-          parse_mode: "HTML", // ✅ Add parse_mode
+          parse_mode: "HTML", 
         });
         break;
 
@@ -55,7 +55,7 @@ export async function sendOnboardMessage(ctx, msg) {
         await ctx.replyWithAudio(msg.fileId, {
           caption: telegramCaption,
           reply_markup: keyboard,
-          parse_mode: "HTML", // ✅ Add parse_mode
+          parse_mode: "HTML", 
         });
         break;
 
