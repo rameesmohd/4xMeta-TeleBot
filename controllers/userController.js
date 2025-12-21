@@ -1,4 +1,4 @@
-import { axiosPost } from '../secureApi.js';
+import { axiosGet, axiosPost } from '../secureApi.js';
 
 const saveBotUser=async(ctx)=>{
     try {
@@ -24,6 +24,18 @@ const saveBotUser=async(ctx)=>{
     }
 }
 
+const updateUserJoinedChannel =async(ctx)=>{
+    try {
+        const userId = ctx.from.id;
+        await axiosGet(`/joined-channel?id=${userId}`)
+        return true
+    } catch (error) {
+        console.log(error);
+        return false
+    }
+}
+
 export {
-    saveBotUser
+    saveBotUser,
+    updateUserJoinedChannel
 }

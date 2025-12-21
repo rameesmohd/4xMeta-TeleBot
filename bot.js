@@ -1,7 +1,7 @@
 import { Telegraf } from "telegraf";
 import dotenv from 'dotenv';
 import { fetchOnBoardMessages } from "./controllers/onboardController.js";
-import { saveBotUser } from "./controllers/userController.js";
+import { saveBotUser, updateUserJoinedChannel } from "./controllers/userController.js";
 
 dotenv.config();
 
@@ -40,23 +40,11 @@ bot.on("chat_join_request", async (ctx) => {
 
     // 1️⃣ Approve join request
     await ctx.telegram.approveChatJoinRequest(channelId, userId);
-
-    // 2️⃣ Send welcome DM to user
-//     await ctx.telegram.sendMessage(
-//       userId,
-//       `🎉 Welcome to Our Private Channel 🚀
-
-// You’re now inside our private channel.
-
-// 📌 What to do next:
-// • Check pinned messages
-// • Open our WebApp
-// • Start copy trading
-
-// Need help? contact manager @calvin.`,
-//       { parse_mode: "Markdown" }
-//     );
-
+    
+    const res = updateUserJoinedChannel()
+    if(res){
+      console.log("User joined channel updated");
+    }
   } catch (err) {
     console.error("Join approve error:", err.message);
   }
