@@ -26,7 +26,7 @@ const saveBotUser=async(ctx)=>{
 
 const updateUserJoinedChannel = async (userId) => {
   try {
-    await axiosGet(`/joined-channel?id=${userId}`);
+    await axiosGet("/joined-channel", { id: userId });
     return true;
   } catch (error) {
     console.error(error);
