@@ -41,7 +41,7 @@ bot.on("chat_join_request", async (ctx) => {
     // 1️⃣ Approve join request
     await ctx.telegram.approveChatJoinRequest(channelId, userId);
     
-    const res = updateUserJoinedChannel()
+    const res = updateUserJoinedChannel(userId)
     if(res){
       console.log("User joined channel updated");
     }

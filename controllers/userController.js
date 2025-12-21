@@ -24,16 +24,16 @@ const saveBotUser=async(ctx)=>{
     }
 }
 
-const updateUserJoinedChannel =async(ctx)=>{
-    try {
-        const userId = ctx.from.id;
-        await axiosGet(`/joined-channel?id=${userId}`)
-        return true
-    } catch (error) {
-        console.log(error);
-        return false
-    }
-}
+const updateUserJoinedChannel = async (userId) => {
+  try {
+    await axiosGet(`/joined-channel?id=${userId}`);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
 
 export {
     saveBotUser,
