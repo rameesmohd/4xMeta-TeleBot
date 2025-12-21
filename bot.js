@@ -32,6 +32,36 @@ bot.start(async (ctx) => {
   fetchOnBoardMessages(ctx)
 });
 
+bot.on("chat_join_request", async (ctx) => {
+  try {
+    const request = ctx.chatJoinRequest;
+    const userId = request.from.id;
+    const channelId = request.chat.id;
+
+    // 1️⃣ Approve join request
+    await ctx.telegram.approveChatJoinRequest(channelId, userId);
+
+    // 2️⃣ Send welcome DM to user
+//     await ctx.telegram.sendMessage(
+//       userId,
+//       `🎉 Welcome to Our Private Channel 🚀
+
+// You’re now inside our private channel.
+
+// 📌 What to do next:
+// • Check pinned messages
+// • Open our WebApp
+// • Start copy trading
+
+// Need help? contact manager @calvin.`,
+//       { parse_mode: "Markdown" }
+//     );
+
+  } catch (err) {
+    console.error("Join approve error:", err.message);
+  }
+});
+
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
