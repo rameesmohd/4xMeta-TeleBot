@@ -27,7 +27,7 @@ bot.start(async (ctx) => {
 
   if (isRateLimited(userId)) return;
 
-const caption = `📈 *Welcome aboard, LIQUIDITY ADMIN!*
+const caption = `📈 *Welcome aboard, ${ctx.from.first_name}!*
 
 You’ve just joined a transparent, performance-driven trading ecosystem built for long-term consistency.
 
