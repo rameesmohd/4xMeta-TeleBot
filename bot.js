@@ -8,8 +8,22 @@ dotenv.config();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const seenUsers = new Set();
 
+const lastAction = new Map();
+const RATE_LIMIT_MS = 3000;
+
+function isRateLimited(userId) {
+  const now = Date.now();
+  const last = lastAction.get(userId) || 0;
+  if (now - last < RATE_LIMIT_MS) return true;
+  lastAction.set(userId, now);
+  return false;
+}
+
 bot.start(async (ctx) => {  
   const userId = ctx.from.id;
+  
+  if (isRateLimited(userId)) return;
+
   if (!seenUsers.has(userId)) {
     const res = await saveBotUser(ctx)
     if(res)seenUsers.add(userId);
