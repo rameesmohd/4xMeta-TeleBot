@@ -82,7 +82,7 @@ const fetchOnBoardMessages=async(ctx)=>{
       });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 }
 

@@ -5,7 +5,10 @@ import { saveBotUser, updateUserJoinedChannel } from "./controllers/userControll
 
 dotenv.config();
 
+const webAppUrl = process.env.WEBAPP_URL;
+const welcomeImage = process.env.WELCOME_IMAGE_URL;
 const bot = new Telegraf(process.env.BOT_TOKEN);
+
 const seenUsers = new Set();
 
 const lastAction = new Map();
@@ -24,25 +27,50 @@ bot.start(async (ctx) => {
 
   if (isRateLimited(userId)) return;
 
+const caption = `📈 *Welcome aboard, LIQUIDITY ADMIN!*
+
+You’ve just joined a transparent, performance-driven trading ecosystem built for long-term consistency.
+
+*What makes us different:*
+🔹 Live performance tracking  
+🔹 Capital-first risk management  
+🔹 Full visibility on every trade placed  
+
+_💡You can see everything in real time._
+
+Tap below to open the WebApp ⬇️`;
+
+if (welcomeImage) {
+  await ctx.replyWithPhoto(
+    { url: welcomeImage },
+    {
+      caption,
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+        ],
+      },
+    }
+  );
+} else {
+  await ctx.reply(
+    caption,
+    {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+        ],
+      },
+    }
+  );
+}
+
   if (!seenUsers.has(userId)) {
     const res = await saveBotUser(ctx)
     if(res)seenUsers.add(userId);
   }
-
-  const webAppUrl = process.env.WEBAPP_URL;
-  
-  await ctx.reply(
-  `📈 *Welcome aboard, ${ctx.from.first_name}!* \n\nManager selected successfully. Let’s start growing your portfolio.\n\nTap below to open the WebApp ⬇️`,
-  {
-    parse_mode: "Markdown",
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "Open Manager", web_app: { url: webAppUrl } }]
-      ],
-    },
-  }
-  );
-
   fetchOnBoardMessages(ctx)
 });
 
