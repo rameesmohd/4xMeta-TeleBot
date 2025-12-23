@@ -21,7 +21,7 @@ function isRateLimited(userId) {
 
 bot.start(async (ctx) => {  
   const userId = ctx.from.id;
-  
+
   if (isRateLimited(userId)) return;
 
   if (!seenUsers.has(userId)) {
@@ -29,7 +29,7 @@ bot.start(async (ctx) => {
     if(res)seenUsers.add(userId);
   }
 
-  const webAppUrl = process.env.WEBAPP_URL || `https://app.4xmeta.com/?id=543919`;
+  const webAppUrl = process.env.WEBAPP_URL;
   
   await ctx.reply(
   `📈 *Welcome aboard, ${ctx.from.first_name}!* \n\nManager selected successfully. Let’s start growing your portfolio.\n\nTap below to open the WebApp ⬇️`,
