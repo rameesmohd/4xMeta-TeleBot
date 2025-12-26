@@ -2,12 +2,14 @@ import { Telegraf } from "telegraf";
 import dotenv from 'dotenv';
 import { fetchOnBoardMessages } from "./controllers/onboardController.js";
 import { saveBotUser, updateUserJoinedChannel } from "./controllers/userController.js";
+import startDailyAlerts from "./cron/dailyAlerts.js";
 
 dotenv.config();
 
 const webAppUrl = process.env.WEBAPP_URL;
 const welcomeImage = process.env.WELCOME_IMAGE_URL;
 const bot = new Telegraf(process.env.BOT_TOKEN);
+startDailyAlerts(bot)
 
 const seenUsers = new Set();
 
@@ -69,10 +71,10 @@ if (welcomeImage) {
 
   if (!seenUsers.has(userId)) {
     const res = await saveBotUser(ctx)
-    if(res)seenUsers.add(userId);
-  }
-  fetchOnBoardMessages(ctx)
-});
+      if(res)seenUsers.add(userId);
+    }
+    fetchOnBoardMessages(ctx)
+  });
 
 bot.on("chat_join_request", async (ctx) => {
   try {
