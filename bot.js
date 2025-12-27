@@ -167,14 +167,17 @@ process.on('unhandledRejection', (error) => {
   console.error('💥 Unhandled Rejection:', error);
 });
 
-// Launch bot
-bot.launch()
-  .then(() => {
-    console.log("🚀 Telegram Bot Started Successfully!");
-    console.log(`📱 Bot: @${bot.botInfo.username}`);
-    console.log(`🔗 WebApp: ${webAppUrl}`);
-    startDailyAlerts(bot); 
-  }).catch(err => {
-    console.error("❌ Failed to start bot:", err);
-    process.exit(1);
+console.log("🚀 Starting Telegram Bot...");
+console.log(`🔗 WebApp: ${webAppUrl}`);
+
+bot.launch();
+
+bot.telegram.getMe()
+  .then((me) => {
+    console.log("✅ Bot is online");
+    console.log(`🤖 Username: @${me.username}`);
+    startDailyAlerts(bot);
+  })
+  .catch(err => {
+    console.error("❌ Bot startup verification failed:", err.message);
   });
