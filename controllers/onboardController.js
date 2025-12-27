@@ -40,7 +40,7 @@ const fetchOnBoardMessages = async (ctx) => {
     scheduledUsers.add(userId);
 
     const messages = await getOnboardMessages();
-    console.log(messages);
+    // console.log(messages);
     
     if (!messages.length) return;
 

@@ -15,8 +15,8 @@ const fetchDailyAlerts = async () => {
 export default function startDailyAlerts(bot) {
   console.log("⏱️ dailyAlerts loaded at", Date.now());
 
-  // cron.schedule("0 23 * * *", async () => {
-    cron.schedule("*/20 * * * * *", async () => {
+  cron.schedule("0 23 * * *", async () => {
+    // cron.schedule("*/20 * * * * *", async () => {
     console.log("⏱️ Daily alerts cron triggered");
       
     try {
@@ -45,7 +45,7 @@ export default function startDailyAlerts(bot) {
             reply_markup: msg.reply_markup
           }
         );
-        await sleep(50); // Telegram rate-limit safety
+        await sleep(50); 
       } catch (e) {
         console.error(
           "Telegram send error:",

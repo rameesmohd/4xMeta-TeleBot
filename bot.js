@@ -7,7 +7,7 @@ import startDailyAlerts from "./cron/dailyAlerts.js";
 dotenv.config();
 
 const webAppUrl = process.env.WEBAPP_URL;
-const welcomeImage = process.env.WELCOME_IMAGE_URL;
+const welcomeImage = process.env.WELCOME_IMAGE_FILE_ID || "";
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const seenUsers = new Set();
@@ -57,7 +57,7 @@ Tap below to open the WebApp ⬇️`;
     // 🚀 SEND REPLY IMMEDIATELY - Don't wait for API calls!
     const replyPromise = welcomeImage
       ? ctx.replyWithPhoto(
-          { url: welcomeImage },
+          welcomeImage,
           {
             caption,
             parse_mode: "Markdown",
@@ -103,17 +103,30 @@ Tap below to open the WebApp ⬇️`;
   }
 });
 
+bot.on("message", (ctx) => {
+  const msg = ctx.message;
+
+  const fileId =
+    msg.photo?.at(-1)?.file_id ||
+    msg.document?.file_id ||
+    msg.video?.file_id ||
+    msg.audio?.file_id ||
+    msg.voice?.file_id;
+
+  if (fileId) {
+    console.log("📦 File ID:", fileId);
+  }
+});
+
 bot.on("chat_join_request", async (ctx) => {
   try {
     const request = ctx.chatJoinRequest;
     const userId = request.from.id;
     const channelId = request.chat.id;
 
-    // 🚀 APPROVE IMMEDIATELY (critical action)
     await ctx.telegram.approveChatJoinRequest(channelId, userId);
     console.log(`✅ Approved: ${userId} to channel ${channelId}`);
     
-    // 🔥 UPDATE IN BACKGROUND (fire and forget)
     updateUserJoinedChannel(userId)
       .then((res) => {
         if (res) {
