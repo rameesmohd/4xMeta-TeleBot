@@ -9,7 +9,7 @@ dotenv.config();
 const webAppUrl = process.env.WEBAPP_URL;
 const welcomeImage = process.env.WELCOME_IMAGE_FILE_ID || "";
 const bot = new Telegraf(process.env.BOT_TOKEN);
-
+const managerId = process.env.MANAGER_ID ;
 const seenUsers = new Set();
 const lastAction = new Map();
 const RATE_LIMIT_MS = 3000;
@@ -34,13 +34,24 @@ setInterval(() => {
 
 bot.start(async (ctx) => {  
   const userId = ctx.from.id;
+  const link = ctx.startPayload?.trim();
+  const isValidLink = seenUsers.has(userId) || link && /^\d+$/.test(link);
 
   if (isRateLimited(userId)) {
     console.log(`⏱️ Rate limited: ${userId}`);
     return;
   }
 
-const caption = `📈 *Welcome aboard, ${ctx.from.first_name}!*
+  // if (!isValidLink) {
+  //   return ctx.reply(
+  //     "⚠️ *Invalid or missing invite link*\n\nPlease open the correct manager link.",
+  //     { parse_mode: "Markdown" }
+  //   );
+  //  }
+
+  let caption = `📈 *Welcome aboard, ${ctx.from.first_name}!*
+
+*Manager #${managerId} selected successfully*
 
 You’ve just joined a transparent, performance-driven trading ecosystem built for long-term consistency.
 
@@ -55,8 +66,8 @@ Tap below to open the WebApp ⬇️`;
 
   try {
     // 🚀 SEND REPLY IMMEDIATELY - Don't wait for API calls!
-    const replyPromise = welcomeImage
-      ? ctx.replyWithPhoto(
+    const sentMessage  = welcomeImage
+      ? await ctx.replyWithPhoto(
           welcomeImage,
           {
             caption,
@@ -68,7 +79,7 @@ Tap below to open the WebApp ⬇️`;
             },
           }
         )
-      : ctx.reply(caption, {
+      : await ctx.reply(caption, {
           parse_mode: "Markdown",
           reply_markup: {
             inline_keyboard: [
@@ -77,8 +88,14 @@ Tap below to open the WebApp ⬇️`;
           },
         });
 
-    await replyPromise;
     if (!seenUsers.has(userId)) {
+      // 📌 PIN ONLY FIRST MESSAGE
+      ctx.telegram.pinChatMessage(
+        ctx.chat.id,
+        sentMessage.message_id,
+        { disable_notification: false }
+      );
+
       saveBotUser(ctx)
         .then((res) => {
           if (res) {
