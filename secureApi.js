@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import crypto from "crypto";
 import http from "http";
 import https from "https";
+import canonicalPayload from "./utils/canonicalPayload.js";
 
 dotenv.config();
 
@@ -15,9 +16,10 @@ if (!API_URL || !BOT_SECRET) {
 
 /* ---------------- SIGNATURE ---------------- */
 const signData = (data = {}) => {
+  const canonical = canonicalPayload(data);
   return crypto
     .createHmac("sha256", BOT_SECRET)
-    .update(JSON.stringify(data))
+    .update(JSON.stringify(canonical))
     .digest("hex");
 };
 
@@ -25,8 +27,6 @@ const signData = (data = {}) => {
 const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 8000,
-  maxRedirects: 2,
-  validateStatus: (status) => status >= 200 && status < 500,
   httpAgent: new http.Agent({ keepAlive: true }),
   httpsAgent: new https.Agent({ keepAlive: true }),
 });

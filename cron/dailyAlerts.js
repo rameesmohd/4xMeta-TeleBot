@@ -1,60 +1,76 @@
+
+
+// cron/dailyAlerts.js
 import cron from "node-cron";
 import { axiosGet } from "../secureApi.js";
 
-
-const fetchDailyAlerts = async () => {
-  try {
-    const res = await axiosGet("/daily-profit-alerts");
-    return res;
-  } catch (error) {
-    console.error("Fetch daily alerts error:", error.message);
-    return { success: false, alerts: [], count: 0 };
-  }
-};
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 export default function startDailyAlerts(bot) {
-  console.log("⏱️ dailyAlerts loaded at", Date.now());
-
+  console.log("⏱️ Daily alerts cron loaded");
+  
+  // cron.schedule("*/20 * * * * *", async () => {
   cron.schedule("0 23 * * *", async () => {
-    // cron.schedule("*/20 * * * * *", async () => {
-    console.log("⏱️ Daily alerts cron triggered");
-      
-    try {
-      const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-      
-    if (!bot || !bot.telegram) {
-      throw new Error("❌ Bot instance not passed to startDailyAlerts()");
-    }
+    console.log("⏱️ Daily alerts started");
 
-    const { success, count, alerts } = await fetchDailyAlerts();
+    let offset = 0;
+    const limit = 500;
 
-    if (!success || !alerts?.length) {
-      console.log("No daily alerts to send.");
-      return;
-    }
+    while (true) {
+      const res = await axiosGet("/daily-profit-alerts", {
+        limit,
+        offset,
+      });
 
-    console.log(`📨 Sending ${count} daily alerts`);
-
-    for (const msg of alerts) {
-      try {
-        await bot.telegram.sendMessage(
-          msg.chat_id,
-          msg.text,
-          {
-            parse_mode: msg.parse_mode || "Markdown",
-            reply_markup: msg.reply_markup
-          }
-        );
-        await sleep(50); 
-      } catch (e) {
-        console.error(
-          "Telegram send error:",
-          e.response?.description || e.message
-        );
+      if (!res?.success || !res.alerts?.length) {
+        console.log("✅ No more alerts to send");
+        break;
       }
+
+      console.log(`📨 Sending batch: ${res.alerts.length}`);
+
+      for (const msg of res.alerts) {
+        console.log(msg);
+        
+        try {
+          const imageFileId =process.env.DAILY_PERFORMANCE_IMAGE_FILE_ID || null;
+
+          if (imageFileId) {
+            // 📸 Send image with caption
+            await bot.telegram.sendPhoto(
+              msg.chat_id,
+              imageFileId,
+              {
+                caption: msg.payload.text,
+                parse_mode: msg.payload.parse_mode,
+                reply_markup: msg.payload.reply_markup
+              }
+            );
+          } else {
+            // 💬 Send text only
+            await bot.telegram.sendMessage(
+              msg.chat_id,
+              msg.payload.text,
+              {
+                parse_mode: msg.payload.parse_mode,
+                reply_markup: msg.payload.reply_markup
+              }
+            );
+          }
+
+          await sleep(55); // safe rate (≈18 msg/sec)
+
+        } catch (e) {
+          console.error(
+            "Telegram send error:",
+            e.response?.description || e.message
+          );
+        }
+      }
+      offset += limit;
+      await sleep(2000); // pause between batches
     }
-  } catch (err) {
-    console.error("❌ Cron alert error:", err);
-  }
+
+    console.log("✅ Daily alerts finished");
   });
 }

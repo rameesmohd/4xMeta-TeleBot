@@ -49,7 +49,7 @@ bot.start(async (ctx) => {
   //   );
   //  }
 
-  let caption = `📈 *Welcome aboard, ${ctx.from.first_name}!*
+  let caption = `*Welcome aboard, ${ctx.from.first_name}!*
 
 *Manager #${managerId} selected successfully*
 
