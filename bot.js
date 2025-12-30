@@ -10,7 +10,7 @@ dotenv.config();
 const webAppUrl = process.env.WEBAPP_URL;
 const welcomeImage = process.env.WELCOME_IMAGE_FILE_ID || "";
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const managerId = process.env.MANAGER_ID ;
+const managerId = process.env.MANAGER_ID || "000000";
 const seenUsers = new Set();
 const lastAction = new Map();
 const RATE_LIMIT_MS = 3000;
@@ -35,8 +35,8 @@ setInterval(() => {
 
 bot.start(async (ctx) => {  
   const userId = ctx.from.id;
-  const link = ctx.startPayload?.trim();
-  const isValidLink = seenUsers.has(userId) || link && /^\d+$/.test(link);
+  // const link = ctx.startPayload?.trim();
+  // const isValidLink = seenUsers.has(userId) || link && /^\d+$/.test(link);
 
   if (isRateLimited(userId)) {
     console.log(`⏱️ Rate limited: ${userId}`);
