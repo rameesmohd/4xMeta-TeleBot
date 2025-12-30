@@ -4,7 +4,8 @@ import cron from "node-cron";
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 export default async function startBroadcast(bot) {
-  cron.schedule("0 */3 * * *", async () => {
+  cron.schedule("0 * * * *", async () => {
+  // cron.schedule("0 */3 * * *", async () => {
   // cron.schedule("*/20 * * * * *", async () => {
     try {
       console.log("⏱️ Broadcast started");
