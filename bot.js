@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { fetchOnBoardMessages } from "./controllers/onboardController.js";
 import { saveBotUser, updateUserJoinedChannel } from "./controllers/userController.js";
 import startDailyAlerts from "./cron/dailyAlerts.js";
+import startBroadcast from "./cron/broadcasts.js";
 
 dotenv.config();
 
@@ -207,6 +208,7 @@ bot.telegram.getMe()
     console.log("✅ Bot is online");
     console.log(`🤖 Username: @${me.username}`);
     startDailyAlerts(bot);
+    startBroadcast(bot)
   })
   .catch(err => {
     console.error("❌ Bot startup verification failed:", err.message);

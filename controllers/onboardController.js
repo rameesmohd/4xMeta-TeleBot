@@ -1,5 +1,5 @@
 import { axiosGet } from "../secureApi.js";
-import { sendOnboardMessage } from "../services/sendMessages.js";
+import { sendOnboardMessage } from "../services/sendOnboardMessage.js";
 
 /* ---------------- CACHE ---------------- */
 let cachedMessages = null;
