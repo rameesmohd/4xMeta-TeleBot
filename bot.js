@@ -8,7 +8,7 @@ import startBroadcast from "./cron/broadcasts.js";
 dotenv.config();
 
 const webAppUrl = process.env.WEBAPP_URL;
-const welcomeImage = process.env.WELCOME_IMAGE_FILE_ID || "";
+const welcome = process.env.WELCOME_FILE_ID || "";
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const managerId = process.env.MANAGER_ID || "000000";
 const seenUsers = new Set();
@@ -67,9 +67,9 @@ Tap below to open the WebApp ⬇️`;
 
   try {
     // 🚀 SEND REPLY IMMEDIATELY - Don't wait for API calls!
-    const sentMessage  = welcomeImage
-      ? await ctx.replyWithPhoto(
-          welcomeImage,
+    const sentMessage  = welcome
+      ? await ctx.replyWithVideo(
+          welcome,
           {
             caption,
             parse_mode: "Markdown",
