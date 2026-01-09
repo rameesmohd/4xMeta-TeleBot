@@ -2,7 +2,7 @@ import { axiosGet } from "../secureApi.js";
 import { sendOnboardMessage } from "../services/sendOnboardMessage.js";
 
 /* ---------------- CACHE ---------------- */
-let cachedMessages = null;
+let cachedMessages = [];
 let lastFetchedAt = 0;
 const CACHE_TTL = 1 * 60 * 1000; // 1 minute
 
@@ -26,7 +26,7 @@ const getOnboardMessages = async () => {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   lastFetchedAt = now;
-  return cachedMessages;
+  return cachedMessages.length ? cachedMessages.reverse() : [];
 };
 
 /* ---------------- MAIN FUNCTION ---------------- */
