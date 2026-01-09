@@ -36,7 +36,7 @@ const fetchOnBoardMessages = async (ctx) => {
     if (!userId) return;
 
     // prevent re-scheduling for same user
-    if (scheduledUsers.has(userId)) return;
+    // if (scheduledUsers.has(userId)) return;
     scheduledUsers.add(userId);
 
     const messages = await getOnboardMessages();
