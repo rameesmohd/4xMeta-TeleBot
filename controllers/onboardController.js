@@ -4,7 +4,7 @@ import { sendOnboardMessage } from "../services/sendOnboardMessage.js";
 /* ---------------- CACHE ---------------- */
 let cachedMessages = null;
 let lastFetchedAt = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 1 * 60 * 1000; // 1 minute
 
 // Track scheduled users to avoid duplicate timers
 const scheduledUsers = new Set();
