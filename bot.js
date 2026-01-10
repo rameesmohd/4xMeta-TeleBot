@@ -54,14 +54,11 @@ bot.start(async (ctx) => {
 
 *Manager #${managerId} selected successfully*
 
-You’ve just joined a transparent, performance-driven trading ecosystem built for long-term consistency.
+👤 *Manager: Calvin Andrew*
+📊 *Experience: 18+ Years Real Market*
+🌍 *Traders Copying: 2,000+ Worldwide*
 
-*What makes us different:*
-🔹 Live performance tracking  
-🔹 Capital-first risk management  
-🔹 Full visibility on every trade placed  
-
-_💡You can see everything in real time._
+_You’ve just joined a transparent, performance-driven trading ecosystem built for long-term consistency._
 
 Tap below to open the WebApp ⬇️`;
 
