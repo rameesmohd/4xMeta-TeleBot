@@ -64,35 +64,35 @@ Tap below to open the WebApp ⬇️`;
 
   try {
     // 🚀 SEND REPLY IMMEDIATELY - Don't wait for API calls!
-    const sentMessage  = welcome
-      ? await ctx.replyWithVideo(
-          welcome,
-          {
-            caption,
-            parse_mode: "Markdown",
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: "Open Manager", web_app: { url: webAppUrl } }],
-              ],
-            },
-          }
-        )
-      : await ctx.reply(caption, {
-          parse_mode: "Markdown",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "Open Manager", web_app: { url: webAppUrl } }],
-            ],
-          },
-        });
+    // const sentMessage  = welcome
+    //   ? await ctx.replyWithVideo(
+    //       welcome,
+    //       {
+    //         caption,
+    //         parse_mode: "Markdown",
+    //         reply_markup: {
+    //           inline_keyboard: [
+    //             [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+    //           ],
+    //         },
+    //       }
+    //     )
+    //   : await ctx.reply(caption, {
+    //       parse_mode: "Markdown",
+    //       reply_markup: {
+    //         inline_keyboard: [
+    //           [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+    //         ],
+    //       },
+    //     });
 
     if (!seenUsers.has(userId)) {
       // 📌 PIN ONLY FIRST MESSAGE
-      ctx.telegram.pinChatMessage(
-        ctx.chat.id,
-        sentMessage.message_id,
-        { disable_notification: false }
-      );
+      // ctx.telegram.pinChatMessage(
+      //   ctx.chat.id,
+      //   sentMessage.message_id,
+      //   { disable_notification: false }
+      // );
 
       saveBotUser(ctx)
         .then((res) => {
