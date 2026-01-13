@@ -1,8 +1,15 @@
 import { convertToTelegramHtml } from "../utils/convertToTelegramHtml.js";
 
-const sendOnboardMessage=async(ctx, msg)=>{
+const sendOnboardMessage = async (ctx, msg) => {
+  // 🔹 Get user's first name safely
+  const firstName = ctx?.from?.first_name || " ";
 
-  const telegramCaption = msg.caption ? convertToTelegramHtml(msg.caption) : "";
+  // 🔹 Replace {name} placeholder before converting HTML
+  const rawCaption = msg.caption
+    ? msg.caption.replace(/{name}/gi, firstName)
+    : "";
+
+  const telegramCaption = convertToTelegramHtml(rawCaption);
 
   const keyboard = msg.buttons?.length ? 
     {
