@@ -11,6 +11,7 @@ const webAppUrl = process.env.WEBAPP_URL;
 const welcome = process.env.WELCOME_FILE_ID || "";
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const managerId = process.env.MANAGER_ID || "000000";
+const botRole = process.env.BOT_ROLE || "APP";
 const seenUsers = new Set();
 const lastAction = new Map();
 const RATE_LIMIT_MS = 3000;
@@ -63,28 +64,30 @@ _You’ve just joined a transparent, performance-driven trading ecosystem built 
 Tap below to open the WebApp ⬇️`;
 
   try {
+    if(botRole === "APP") {
     // 🚀 SEND REPLY IMMEDIATELY - Don't wait for API calls!
-    // const sentMessage  = welcome
-    //   ? await ctx.replyWithVideo(
-    //       welcome,
-    //       {
-    //         caption,
-    //         parse_mode: "Markdown",
-    //         reply_markup: {
-    //           inline_keyboard: [
-    //             [{ text: "Open Manager", web_app: { url: webAppUrl } }],
-    //           ],
-    //         },
-    //       }
-    //     )
-    //   : await ctx.reply(caption, {
-    //       parse_mode: "Markdown",
-    //       reply_markup: {
-    //         inline_keyboard: [
-    //           [{ text: "Open Manager", web_app: { url: webAppUrl } }],
-    //         ],
-    //       },
-    //     });
+    welcome ?
+       await ctx.replyWithVideo(
+          welcome,
+          {
+            caption,
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+              ],
+            },
+          }
+        )
+      : await ctx.reply(caption, {
+          parse_mode: "Markdown",
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+            ],
+          },
+        })
+    }
 
     if (!seenUsers.has(userId)) {
       // 📌 PIN ONLY FIRST MESSAGE
@@ -106,10 +109,12 @@ Tap below to open the WebApp ⬇️`;
         });
     }
 
-    // Fetch onboarding messages in background (non-blocking)
-    fetchOnBoardMessages(ctx).catch((err) => {
-      console.error(`❌ Onboard messages for ${userId} failed:`, err.message);
-    });
+    if(botRole=="TRADER"){
+      // Fetch onboarding messages in background (non-blocking)
+      fetchOnBoardMessages(ctx).catch((err) => {
+        console.error(`❌ Onboard messages for ${userId} failed:`, err.message);
+      });
+    }
 
   } catch (error) {
     console.error("❌ Start command error:", error.message);
@@ -204,8 +209,15 @@ bot.telegram.getMe()
   .then((me) => {
     console.log("✅ Bot is online");
     console.log(`🤖 Username: @${me.username}`);
-    startDailyAlerts(bot);
-    startBroadcast(bot)
+
+    if(botRole=="APP"){
+      startDailyAlerts(bot);
+    }
+
+    if(botRole=="TRADER"){
+       startBroadcast(bot)
+    }
+    
   })
   .catch(err => {
     console.error("❌ Bot startup verification failed:", err.message);
