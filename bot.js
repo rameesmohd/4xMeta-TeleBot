@@ -177,7 +177,7 @@ bot.action("COPY_REQUEST", async (ctx) => {
   }
 
   await ctx.reply(
-    `<b>⚠️ Important Information</b>\n\n` +
+    `<b>Important Information</b>\n\n` +
       `Copy trading execution is provided through the <b>4xMeta</b> platform. 4xMeta is responsible for trade automation and technical infrastructure.\n\n` +
       `Calvin Andrew provides a rule-based trading strategy that users may` +
       ` choose to follow. Trades are executed automatically by the platform` +
