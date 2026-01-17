@@ -72,7 +72,7 @@ Tap below to open the WebApp ⬇️`;
             parse_mode: "Markdown",
             reply_markup: {
               inline_keyboard: [
-                [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+                [{ text: "Open Platform", web_app: { url: webAppUrl } }],
               ],
             },
           }
@@ -81,7 +81,7 @@ Tap below to open the WebApp ⬇️`;
           parse_mode: "Markdown",
           reply_markup: {
             inline_keyboard: [
-              [{ text: "Open Manager", web_app: { url: webAppUrl } }],
+              [{ text: "Open Platform", web_app: { url: webAppUrl } }],
             ],
           },
         })
