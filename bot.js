@@ -166,6 +166,37 @@ bot.on("chat_join_request", async (ctx) => {
   }
 });
 
+bot.action("COPY_REQUEST", async (ctx) => {
+  await ctx.answerCbQuery();
+
+  const botUrl = process.env.WEBAPP_BOT_URL;
+
+  if (!botUrl) {
+    return ctx.reply("⚠️ Service temporarily unavailable. Please try again later.");
+  }
+
+  await ctx.reply(
+    `<b>Important Information</b>\n\n` +
+    `Copy trading execution is provided through the <b>4xMeta</b> platform.\n\n` +
+    `4xMeta is responsible for trade automation and technical infrastructure.\n\n` +
+    `Calvin Andrew provides strategy information only and does not manage user funds or execute trades.\n\n` +
+    `Please confirm to continue.`,
+    {
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Continue to 4xMeta",
+              url: botUrl 
+            }
+          ],
+        ]
+      }
+    }
+  );
+});
+
 // Global error handler
 bot.catch((err, ctx) => {
   console.error(`❌ Bot error for ${ctx.updateType}:`, err);

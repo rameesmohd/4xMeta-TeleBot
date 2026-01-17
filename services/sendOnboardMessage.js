@@ -1,37 +1,57 @@
 import { convertToTelegramHtml } from "../utils/convertToTelegramHtml.js";
 
+const isValidUrl = (value) => {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const sendOnboardMessage = async (ctx, msg) => {
-  // 🔹 Get user's first name safely
   const firstName = ctx?.from?.first_name || " ";
 
-  // 🔹 Replace {name} placeholder before converting HTML
   const rawCaption = msg.caption
     ? msg.caption.replace(/{name}/gi, firstName)
     : "";
 
   const telegramCaption = convertToTelegramHtml(rawCaption);
 
-  const keyboard = msg.buttons?.length ? 
-    {
-      inline_keyboard: msg.buttons.map((btn) => {
-        if (btn.type === "webapp") {
+  const keyboard = msg.buttons?.length
+    ? {
+        inline_keyboard: msg.buttons.map((btn) => {
+
+          // 🔹 WebApp button
+          if (btn.type === "webapp") {
+            return [
+              {
+                text: btn.text,
+                web_app: { url: btn.url },
+              },
+            ];
+          }
+
+          // 🔹 Callback button (NON-URL or explicit callback)
+          if (btn.type === "callback" || !isValidUrl(btn.url)) {
+            return [
+              {
+                text: btn.text,
+                callback_data: btn.data || btn.url, // fallback support
+              },
+            ];
+          }
+
+          // 🔹 Normal URL button
           return [
             {
               text: btn.text,
-              web_app: { url: btn.url },
+              url: btn.url,
             },
           ];
-        }
-
-        return [
-          {
-            text: btn.text,
-            url: btn.url,
-          },
-        ];
-      }),
-    }
-  : undefined;
+        }),
+      }
+    : undefined;
 
   try {
     switch (msg.type) {
@@ -46,7 +66,7 @@ const sendOnboardMessage = async (ctx, msg) => {
         await ctx.replyWithPhoto(msg.fileId, {
           caption: telegramCaption,
           reply_markup: keyboard,
-          parse_mode: "HTML", 
+          parse_mode: "HTML",
         });
         break;
 
@@ -54,7 +74,7 @@ const sendOnboardMessage = async (ctx, msg) => {
         await ctx.replyWithVideo(msg.fileId, {
           caption: telegramCaption,
           reply_markup: keyboard,
-          parse_mode: "HTML", 
+          parse_mode: "HTML",
         });
         break;
 
@@ -62,7 +82,7 @@ const sendOnboardMessage = async (ctx, msg) => {
         await ctx.replyWithAudio(msg.fileId, {
           caption: telegramCaption,
           reply_markup: keyboard,
-          parse_mode: "HTML", 
+          parse_mode: "HTML",
         });
         break;
 
@@ -71,12 +91,9 @@ const sendOnboardMessage = async (ctx, msg) => {
     }
 
     console.log(`📨 Sent onboarding message #${msg.order}`);
-
   } catch (err) {
-    console.log("❌ Send onboarding failed:", err);    
+    console.log("❌ Send onboarding failed:", err);
   }
-}
+};
 
-export {    
-    sendOnboardMessage,  
-}
+export { sendOnboardMessage };
