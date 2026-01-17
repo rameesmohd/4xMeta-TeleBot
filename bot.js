@@ -169,26 +169,35 @@ bot.on("chat_join_request", async (ctx) => {
 bot.action("COPY_REQUEST", async (ctx) => {
   await ctx.answerCbQuery();
 
-  const botUrl = process.env.WEBAPP_BOT_URL;
+  const webAppBotUrl = process.env.WEBAPP_BOT_URL;
+  const webAppUrl = process.env.WEBAPP_URL;
 
-  if (!botUrl) {
+  if (!webAppBotUrl) {
     return ctx.reply("⚠️ Service temporarily unavailable. Please try again later.");
   }
 
   await ctx.reply(
-    `<b>Important Information</b>\n\n` +
-    `Copy trading execution is provided through the <b>4xMeta</b> platform.\n\n` +
-    `4xMeta is responsible for trade automation and technical infrastructure.\n\n` +
-    `Calvin Andrew provides strategy information only and does not manage user funds or execute trades.\n\n` +
-    `Please confirm to continue.`,
+    `<b>⚠️ Important Information</b>\n\n` +
+      `Copy trading execution is provided through the <b>4xMeta</b> platform. 4xMeta is responsible for trade automation and technical infrastructure.\n\n` +
+      `Calvin Andrew provides a rule-based trading strategy that users may` +
+      ` choose to follow. Trades are executed automatically by the platform` +
+      ` according to predefined rules. Calvin Andrew does not have access to` +
+      ` user funds and cannot deposit, withdraw, or control user accounts.\n\n` +
+      `Please confirm to continue.`,
     {
       parse_mode: "HTML",
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "Continue to 4xMeta",
-              url: botUrl 
+              text: "Open WebApp",
+              web_app: { url: webAppUrl }
+            }
+          ],
+           [
+            {
+              text: "Open 4xMeta Bot",
+              url: webAppBotUrl 
             }
           ],
         ]
