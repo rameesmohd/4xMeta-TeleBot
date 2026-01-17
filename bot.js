@@ -55,9 +55,7 @@ bot.start(async (ctx) => {
 
 *Manager #${managerId} selected successfully*
 
-👤 *Manager: Calvin Andrew*
-📊 *Experience: 18+ Years Real Market*
-🌍 *Traders Copying: 2,000+ Worldwide*
+👤 *Manager: Calvin Trades*
 
 _You’ve just joined a transparent, performance-driven trading ecosystem built for long-term consistency._
 
