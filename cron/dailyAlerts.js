@@ -65,6 +65,11 @@ export default function startDailyAlerts(bot) {
             "Telegram send error:",
             e.response?.description || e.message
           );
+          
+          if (e.response?.error_code === 429) {
+            const retryAfter = e.response.parameters?.retry_after || 5;
+            await sleep(retryAfter * 1000);
+          }
         }
       }
       offset += limit;
