@@ -95,6 +95,12 @@ const sendOnboardMessage = async (ctx, msg) => {
     }
 
     console.log(`📨 Sent onboarding message #${msg.order}`);
+
+    if (msg.pin) {
+      await ctx.telegram.pinChatMessage(ctx.chat.id, sent.message_id, {
+        disable_notification: true,
+      }).catch((e) => console.log("📌 Pin failed:", e.message));
+    }
     return sent;
   } catch (err) {
     console.log("❌ Send onboarding failed:", err);
