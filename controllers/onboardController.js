@@ -18,15 +18,26 @@ const getOnboardMessages = async () => {
   }
 
   const messages = await axiosGet("/onboard/list");
-
   if (!Array.isArray(messages)) return [];
 
+  // ✅ Only schedule delay-based messages (command === null)
   cachedMessages = messages
-    .filter(m => typeof m.delayMinutes === "number")
+    .filter((m) => (m.command == null || m.command === "") && typeof m.delayMinutes === "number")
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   lastFetchedAt = now;
-  return cachedMessages.length ? cachedMessages.reverse() : [];
+  return cachedMessages;
+};
+
+/* ---------------- NEW: Fetch by command ---------------- */
+const fetchOnboardByCommand = async (command) => {
+  if (!command) return null;
+  const res = await axiosGet(`/onboard/by-command/${encodeURIComponent(command)}`);
+
+  // handle both response shapes
+  if (res?.success && res?.data) return res.data;
+  if (res?.data?.data) return res.data.data;
+  return res?.data || res;
 };
 
 /* ---------------- MAIN FUNCTION ---------------- */
@@ -35,13 +46,11 @@ const fetchOnBoardMessages = async (ctx) => {
     const userId = ctx.from?.id;
     if (!userId) return;
 
-    // prevent re-scheduling for same user
+    // prevent re-scheduling for same user (enable if you want)
     // if (scheduledUsers.has(userId)) return;
     scheduledUsers.add(userId);
 
     const messages = await getOnboardMessages();
-    // console.log(messages);
-    
     if (!messages.length) return;
 
     for (const msg of messages) {
@@ -51,10 +60,7 @@ const fetchOnBoardMessages = async (ctx) => {
         try {
           await sendOnboardMessage(ctx, msg);
         } catch (err) {
-          console.error(
-            `❌ Onboard send failed (user ${userId}):`,
-            err.message
-          );
+          console.error(`❌ Onboard send failed (user ${userId}):`, err.message);
         }
       }, delayMs);
     }
@@ -63,4 +69,4 @@ const fetchOnBoardMessages = async (ctx) => {
   }
 };
 
-export { fetchOnBoardMessages };
+export { fetchOnBoardMessages, fetchOnboardByCommand };

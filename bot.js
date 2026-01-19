@@ -4,6 +4,8 @@ import { fetchOnBoardMessages } from "./controllers/onboardController.js";
 import { saveBotUser, updateUserJoinedChannel } from "./controllers/userController.js";
 import startDailyAlerts from "./cron/dailyAlerts.js";
 import startBroadcast from "./cron/broadcasts.js";
+import { axiosGet } from "./secureApi.js";
+import { sendOnboardMessage, sendOrEditOnboardMessage } from "./services/sendOnboardMessage.js";
 
 dotenv.config();
 
@@ -204,6 +206,35 @@ bot.action("COPY_REQUEST", async (ctx) => {
       }
     }
   );
+});
+
+// ✅ Global handler for onboarding "command" callbacks
+// Put this AFTER specific actions like COPY_REQUEST, so they still work.
+bot.on("callback_query", async (ctx) => {
+  try {
+    const cmd = ctx.callbackQuery?.data;
+    if (!cmd) return;
+
+    // Ignore commands handled elsewhere
+    if (cmd === "COPY_REQUEST") return;
+
+    // Fetch onboarding message by command
+    const resp = await axiosGet("/onboard/by-command", { command: cmd });
+    const onboardMsg = resp?.data || resp?.data?.data || resp?.data?.data?.data || resp?.data || resp;
+
+    if (!onboardMsg || !onboardMsg.type) {
+      await ctx.answerCbQuery("No action found", { show_alert: false }).catch(() => {});
+      return;
+    }
+
+    // Decide inline vs new message
+    await sendOrEditOnboardMessage(ctx, onboardMsg);
+
+    await ctx.answerCbQuery().catch(() => {});
+  } catch (err) {
+    console.error("❌ callback_query handler error:", err?.message || err);
+    await ctx.answerCbQuery("Error", { show_alert: false }).catch(() => {});
+  }
 });
 
 // Global error handler
