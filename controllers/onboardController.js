@@ -32,7 +32,7 @@ const getOnboardMessages = async () => {
 /* ---------------- NEW: Fetch by command ---------------- */
 const fetchOnboardByCommand = async (command) => {
   if (!command) return null;
-  const res = await axiosGet(`/onboard/by-command/${encodeURIComponent(command)}`);
+  const res = await axiosGet("/onboard/by-command", { command });
 
   // handle both response shapes
   if (res?.success && res?.data) return res.data;

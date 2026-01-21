@@ -42,7 +42,13 @@ const updateUserJoinedChannel = async (ctx) => {
   }
 };
 
+const userExists = async (telegramId) => {
+  const res = await axiosGet(`/user-exists/${telegramId}`);
+  return !!(res?.exists ?? res?.data?.exists ?? res?.data?.data?.exists);
+};
+
 export {
     saveBotUser,
-    updateUserJoinedChannel
+    updateUserJoinedChannel,
+    userExists
 }

@@ -170,4 +170,73 @@ const sendOrEditOnboardMessage = async (ctx, msg) => {
   await sendOnboardMessage(ctx, msg);
 };
 
-export { sendOnboardMessage, sendOrEditOnboardMessage };
+// services/sendOnboardMessage.js
+
+const sendOnboardMessageOnRequest = async (ctx, msg, chatId = null) => {
+  const targetChatId = chatId ?? ctx?.chat?.id; // 👈 allow explicit DM target
+  if (!targetChatId) throw new Error("Missing target chatId");
+
+  const firstName = ctx?.from?.first_name || " ";
+  const rawCaption = msg.caption ? msg.caption.replace(/{name}/gi, firstName) : "";
+  const telegramCaption = convertToTelegramHtml(rawCaption);
+
+  const keyboard = buildKeyboard(msg.buttons);
+
+  try {
+    let sent;
+
+    switch (msg.type) {
+      case "text":
+        sent = await ctx.telegram.sendMessage(targetChatId, telegramCaption || "-", {
+          reply_markup: keyboard,
+          parse_mode: "HTML",
+        });
+        break;
+
+      case "image":
+        sent = await ctx.telegram.sendPhoto(targetChatId, msg.fileId, {
+          caption: telegramCaption,
+          reply_markup: keyboard,
+          parse_mode: "HTML",
+        });
+        break;
+
+      case "video":
+        sent = await ctx.telegram.sendVideo(targetChatId, msg.fileId, {
+          caption: telegramCaption,
+          reply_markup: keyboard,
+          parse_mode: "HTML",
+        });
+        break;
+
+      case "audio":
+        sent = await ctx.telegram.sendAudio(targetChatId, msg.fileId, {
+          caption: telegramCaption,
+          reply_markup: keyboard,
+          parse_mode: "HTML",
+        });
+        break;
+
+      default:
+        console.log("⚠ Unknown message type:", msg.type);
+        return null;
+    }
+
+    console.log(`📨 Sent onboarding message #${msg.order}`);
+
+    if (msg.pin) {
+      await ctx.telegram
+        .pinChatMessage(targetChatId, sent.message_id, { disable_notification: true })
+        .catch((e) => console.log("📌 Pin failed:", e.message));
+    }
+
+    return sent;
+  } catch (err) {
+    console.log("❌ Send onboarding failed:", err);
+    return null;
+  }
+};
+
+
+
+export { sendOnboardMessage, sendOrEditOnboardMessage,sendOnboardMessageOnRequest };
