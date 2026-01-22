@@ -5,6 +5,7 @@ const saveBotUser=async(ctx)=>{
         const userId = ctx.from.id;
         const user = ctx.from;
         const refCode = ctx.startPayload || null
+        const isApp = process.env.BOT_ROLE=="APP"
         
         await axiosPost("/save-user", {
             telegramId: user?.id,
@@ -14,6 +15,8 @@ const saveBotUser=async(ctx)=>{
             language_code: user.language_code || null,
             is_premium: user.is_premium || false,
             referred_by: refCode,
+            
+            ...(isApp ? { is_second_bot: true } : {})
         });
 
         console.log(`✅ User ${userId} saved successfully`);
