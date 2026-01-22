@@ -3,10 +3,27 @@ import { sendBroadcastMessage } from "../services/sendBroadcastMessage.js";
 import cron from "node-cron";
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+function isPermanentTelegramError(err) {
+  const code = err?.response?.error_code;
+  const desc = (err?.response?.description || "").toLowerCase();
+
+  // Common permanent failures (don’t retry)
+  return (
+    code === 403 || code === 400 ||
+    desc.includes("bot was blocked by the user") ||
+    desc.includes("user is deactivated") ||
+    desc.includes("chat not found") ||
+    desc.includes("forbidden: bot was blocked")
+  );
+}
+let isRunning = false;
+
 export default async function startBroadcast(bot) {
-  cron.schedule("0 * * * *", async () => {
+  // cron.schedule("0 * * * *", async () => {
   // cron.schedule("0 */3 * * *", async () => {
-  // cron.schedule("*/20 * * * * *", async () => {
+  cron.schedule("*/20 * * * * *", async () => {
+    if (isRunning) return;
+    isRunning = true;
     try {
       console.log("⏱️ Broadcast started");
 
@@ -52,17 +69,32 @@ export default async function startBroadcast(bot) {
 
           
           for (const user of users) {
-            console.log(
-              `🚀 Sending message ${message._id} to ${user.chat_id} user)`
-            );
-            await sendBroadcastMessage(bot, user);
-            await sleep(100);
+            try {
+              console.log(`🚀 Sending message ${message._id} to ${user.chat_id}`);
+              await sendBroadcastMessage(bot, user);
+              await sleep(100);
+            } catch (err) {
+              const desc =
+              err?.response?.description ||
+              err?.description ||
+              err?.message ||
+              "";
+              console.log(`⚠ Failed to send to ${user.chat_id}: `, err?.response?.description || err.message || err);
+              if (isPermanentTelegramError(err)) {
+                axiosPost("/bot-user/mark-inactive", {
+                  chat_id: user.chat_id,
+                  reason: desc,
+                }).catch(e =>
+                  console.error(`⚠️ Mark-inactive failed for ${user.chat_id}`, e.message)
+                );
+              }
+            }
           }
 
           // 5️⃣ Advance pagination
           skip += users.length;
         }
-
+        
         // 6️⃣ Mark message as completed
         const completeRes = await axiosPost("/broadcast/mark-done", {
           message: message._id
@@ -75,8 +107,11 @@ export default async function startBroadcast(bot) {
         }
       }
       console.log(`🎯 Broadcast completed handled total ${messages.length || 0} messages`);
+      return { ok: true };
     } catch (error) {
       console.log("Broadcast error: ",error);
+    } finally {
+      isRunning = false;
     }
   })
 }

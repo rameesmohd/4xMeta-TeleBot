@@ -1,6 +1,5 @@
 const sendBroadcastMessage = async (bot, alert) => {
   const { chat_id, type, fileId, payload } = alert;
-  try {
     switch (type) {
       case "text":
         await bot.telegram.sendMessage(chat_id, payload.text, {
@@ -38,22 +37,6 @@ const sendBroadcastMessage = async (bot, alert) => {
     }
 
     return true;
-  } catch (err) {
-    // Handle specific Telegram errors
-    const errMsg = err.response?.description || err.message;
-    
-    if (errMsg.includes("bot was blocked")) {
-      console.log(`⚠️ User ${chat_id} blocked bot`);
-    } else if (errMsg.includes("user is deactivated")) {
-      console.log(`⚠️ User ${chat_id} deactivated`);
-    } else if (errMsg.includes("chat not found")) {
-      console.log(`⚠️ Chat ${chat_id} not found`);
-    } else {
-      console.error(`❌ Error for ${chat_id}:`, errMsg);
-    }
-    
-    return false;
-  }
 };
 
 export {
