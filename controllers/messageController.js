@@ -42,10 +42,9 @@ const fetchOnboardByCommand = async (command) => {
 };
 
 /* ---------------- HELPER: Process messages with delay ---------------- */
-const processMessagesWithDelay = async (ctx, messages, userId, sendFunction = sendOnboardMessage) => {
+const processMessagesWithDelay = async (ctx, messages, userId, sendFunction) => {
   if (!Array.isArray(messages)) return;
 
-  // Capture telegram API and necessary context data before setTimeout
   const telegram = ctx.telegram;
   const chatId = ctx.chat?.id || userId;
   const firstName = ctx.from?.first_name;
@@ -55,16 +54,16 @@ const processMessagesWithDelay = async (ctx, messages, userId, sendFunction = se
 
     setTimeout(async () => {
       try {
-        // Rebuild minimal context for the send function
         const delayedCtx = {
           telegram,
           chat: { id: chatId },
-          from: { first_name: firstName, id: userId }
+          from: { first_name: firstName, id: userId },
         };
-        
-        await sendFunction(delayedCtx, msg);
+
+        // ✅ IMPORTANT: for delayed messages use the telegram-based sender
+        await sendOnboardMessageOnRequest(delayedCtx, msg, chatId);
       } catch (err) {
-        console.error(`❌ Onboard send failed (user ${userId}):`, err.message);
+        console.error(`❌ Onboard send failed (user ${userId}):`, err?.message || err);
       }
     }, delayMs);
   }
@@ -83,7 +82,7 @@ const fetchOnBoardMessages = async (ctx) => {
     const messages = await getOnboardMessages();
     if (!messages.length) return;
 
-    await processMessagesWithDelay(ctx, messages, userId);
+    await processMessagesWithDelay(ctx, messages, userId,sendOnboardMessage);
   } catch (error) {
     console.error("❌ fetchOnBoardMessages error:", error.message);
   }

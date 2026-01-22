@@ -13,7 +13,7 @@ const managerId = process.env.MANAGER_ID || "000000";
 const botRole = process.env.BOT_ROLE || "APP";
 
 const SEEN_USERS_MAX = 1000;
-const seenUsers = new Set();
+const seenUsers = new Map();
 
 const lastAction = new Map();
 const RATE_LIMIT_MS = 3000;
