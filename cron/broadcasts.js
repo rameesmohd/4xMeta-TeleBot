@@ -19,9 +19,9 @@ function isPermanentTelegramError(err) {
 let isRunning = false;
 
 export default async function startBroadcast(bot) {
-  // cron.schedule("0 * * * *", async () => {
+  cron.schedule("0 * * * *", async () => {
   // cron.schedule("0 */3 * * *", async () => {
-  cron.schedule("*/20 * * * * *", async () => {
+  // cron.schedule("*/20 * * * * *", async () => {
     if (isRunning) return;
     isRunning = true;
     try {
