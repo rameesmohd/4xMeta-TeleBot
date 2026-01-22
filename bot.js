@@ -1,12 +1,9 @@
 import { Telegraf } from "telegraf";
 import dotenv from 'dotenv';
-import { fetchOnboardByCommand, fetchOnBoardMessages } from "./controllers/onboardController.js";
-import { saveBotUser, updateUserJoinedChannel, userExists } from "./controllers/userController.js";
+import { fetchCallbackMessage, fetchOnBoardMessages, fetchOnBoardMessagesOnRequest } from "./controllers/messageController.js";
+import { saveBotUser } from "./controllers/userController.js";
 import startDailyAlerts from "./cron/dailyAlerts.js";
 import startBroadcast from "./cron/broadcasts.js";
-import { axiosGet } from "./secureApi.js";
-import { sendOnboardMessage, sendOnboardMessageOnRequest, sendOrEditOnboardMessage } from "./services/sendOnboardMessage.js";
-
 dotenv.config();
 
 const webAppUrl = process.env.WEBAPP_URL;
@@ -14,7 +11,10 @@ const welcome = process.env.WELCOME_FILE_ID || "";
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const managerId = process.env.MANAGER_ID || "000000";
 const botRole = process.env.BOT_ROLE || "APP";
+
+const SEEN_USERS_MAX = 1000;
 const seenUsers = new Set();
+
 const lastAction = new Map();
 const RATE_LIMIT_MS = 3000;
 
@@ -35,6 +35,25 @@ setInterval(() => {
     }
   }
 }, 300000);
+
+function hasSeenUser(userId) {
+  return seenUsers.has(userId);
+}
+
+function markSeenUser(userId) {
+  // If already exists, refresh position (move to end)
+  if (seenUsers.has(userId)) {
+    seenUsers.delete(userId);
+  }
+
+  seenUsers.set(userId, true);
+
+  // FIFO eviction
+  if (seenUsers.size > SEEN_USERS_MAX) {
+    const oldestKey = seenUsers.keys().next().value;
+    seenUsers.delete(oldestKey);
+  }
+}
 
 bot.start(async (ctx) => {  
   const userId = ctx.from.id;
@@ -83,11 +102,11 @@ Tap below to open the WebApp ⬇️`;
         )
     }
 
-    if (!seenUsers.has(userId)) {
+    if (!hasSeenUser(userId)) {
       saveBotUser(ctx)
         .then((res) => {
           if (res) {
-            seenUsers.add(userId);
+            markSeenUser(userId);
             console.log(`✅ User ${userId} saved`);
           }
         })
@@ -125,120 +144,17 @@ bot.on("message", (ctx) => {
   }
 });
 
-// bot.on("chat_join_request", async (ctx) => {
-//   const request = ctx.chatJoinRequest;
-//   const userId = request.from.id;
-//   const channelId = request.chat.id;
-//   const channelUrl = process.env.CHANNEL_URL; // https://t.me/yourchannel
-//   const botUsername = process.env.BOT_USERNAME; // without @
-//   const startLink = `https://t.me/${botUsername}?start=onboard`;
-
-//   const firstName = request.from.first_name || "Trader";
-
-//   const text =
-// `🎉 *Congrats ${firstName}!*
-
-// Welcome to the community.
-// Your request has been approved ✅  
-
-// Tap below to open the channel 👇
-// `;
-
-//   try {
-//     // ✅ Send ONE DM
-//     await ctx.telegram.sendMessage(userId, text, {
-//       parse_mode: "Markdown",
-//       reply_markup: {
-//         inline_keyboard: [
-//           [{ text: "Open Channel", url: channelUrl }],
-//           // [{ text: "Start / Learn more", url: startLink }],
-//         ],
-//       },
-//     });
-
-//     // ✅ Approve join request (optional: approve immediately)
-//     await ctx.telegram.approveChatJoinRequest(channelId, userId);
-
-//     // Optional: if you want to mark "joined channel" even before /start
-//     updateUserJoinedChannel(ctx).catch(() => {});
-//   } catch (err) {
-//     console.error("❌ join_request flow failed:", err.message);
-
-//     // If DM blocked (403), at least approve or just log.
-//     // You can also consider NOT approving until they start the bot,
-//     // but that requires storing pending requests.
-//     try {
-//       await ctx.telegram.approveChatJoinRequest(channelId, userId);
-//     } catch {}
-//   }
-// });
-
-// ✅ Global handler for onboarding "command" callbacks
-// Put this AFTER specific actions like COPY_REQUEST, so they still work.
-
 bot.on("chat_join_request", async (ctx) => {
-  const request = ctx.chatJoinRequest;
-  const userId = request.from.id;
-  const channelId = request.chat.id;
-
-  try {
-    // ✅ 1) check existence from WebApp server
-    const exists = await userExists(userId);
-
-    // ✅ 2) choose command
-    const command = exists ? "REQUEST_APPROVED_CURR" : "REQUEST_APPROVED_NEW";
-
-    // ✅ 3) fetch onboarding message by command
-    const onboardMsg = await fetchOnboardByCommand(command);
-
-    // ✅ 4) DM user
-    if (onboardMsg?.type) {
-      // make sure it sends to user DM (depends on your sendOnboardMessage impl)
-      await sendOnboardMessageOnRequest({ ...ctx, chat: { id: userId } }, onboardMsg);
-    } else {
-      await ctx.telegram.sendMessage(userId, "Approved ✅");
-    }
-
-    // ✅ 5) approve join request
-    await ctx.telegram.approveChatJoinRequest(channelId, userId);
-
-    // ✅ optional: tell webapp user joined
-    // await axiosPost(`/users/${userId}/joined-channel`, {...})
-  } catch (err) {
-    console.error("❌ join_request flow failed:", err.message);
-    try {
-      await ctx.telegram.approveChatJoinRequest(channelId, userId);
-    } catch {}
-  }
+  await fetchOnBoardMessagesOnRequest(ctx)
 });
 
-// ✅ Global handler for onboarding "command" callbacks
-// Put this AFTER specific actions like COPY_REQUEST, so they still work.
 bot.on("callback_query", async (ctx) => {
-  try {
-    const cmd = ctx.callbackQuery?.data;
-    if (!cmd) return;
-
-    // Ignore commands handled elsewhere
-    if (cmd === "COPY_REQUEST") return;
-
-    // Fetch onboarding message by command
-    const resp = await axiosGet("/onboard/by-command", { command: cmd });
-    const onboardMsg = resp?.data || resp?.data?.data || resp?.data?.data?.data || resp?.data || resp;
-
-    if (!onboardMsg || !onboardMsg.type) {
-      await ctx.answerCbQuery("No action found", { show_alert: false }).catch(() => {});
-      return;
-    }
-
-    // Decide inline vs new message
-    await sendOrEditOnboardMessage(ctx, onboardMsg);
-
-    await ctx.answerCbQuery().catch(() => {});
-  } catch (err) {
-    console.error("❌ callback_query handler error:", err?.message || err);
-    await ctx.answerCbQuery("Error", { show_alert: false }).catch(() => {});
+  const userId = ctx.from.id;
+  if (isRateLimited(userId)) {
+    await ctx.answerCbQuery(`Already processing…`);
+    return;
   }
+  await fetchCallbackMessage(ctx)
 });
 
 // Global error handler
