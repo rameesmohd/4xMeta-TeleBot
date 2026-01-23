@@ -8,9 +8,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export default function startDailyAlerts(bot) {
   console.log("⏱️ Daily alerts cron loaded");
 
-  cron.schedule(
-    "0 23 * * 1-5",
-    async () => {
+  cron.schedule("0 23 * * 1-5",async () => {
+  // cron.schedule("*/20 * * * * *", async () => {
       console.log("⏱️ Daily alerts started");
 
       let offset = 0;
