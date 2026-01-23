@@ -1,81 +1,94 @@
-
-
 // cron/dailyAlerts.js
 import cron from "node-cron";
-import { axiosGet } from "../secureApi.js";
+import { axiosGet, axiosPost } from "../secureApi.js";
+import isPermanentTelegramError from "../utils/isPermanentTelegramError.js";
 
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function startDailyAlerts(bot) {
   console.log("⏱️ Daily alerts cron loaded");
-  
-  // cron.schedule("*/20 * * * * *", async () => {
-  cron.schedule("0 23 * * 1-5", async () => {
-    console.log("⏱️ Daily alerts started");
 
-    let offset = 0;
-    const limit = 500;
+  cron.schedule(
+    "0 23 * * 1-5",
+    async () => {
+      console.log("⏱️ Daily alerts started");
 
-    while (true) {
-      const res = await axiosGet("/daily-profit-alerts", {
-        limit,
-        offset,
-      });
+      let offset = 0;
+      const limit = 500;
 
-      if (!res?.success || !res.alerts?.length) {
-        console.log("✅ No more alerts to send");
-        break;
-      }
-
-      console.log(`📨 Sending batch: ${res.alerts.length}`);
-
-      for (const msg of res.alerts) {
-        console.log(msg);
-        
+      while (true) {
+        let res;
         try {
-          const imageFileId =process.env.DAILY_PERFORMANCE_IMAGE_FILE_ID || null;
+          res = await axiosGet("/daily-profit-alerts", { limit, offset });
+        } catch (apiErr) {
+          console.error("❌ API fetch error:", apiErr.message);
+          break;
+        }
 
-          if (imageFileId) {
-            // 📸 Send image with caption
-            await bot.telegram.sendPhoto(
-              msg.chat_id,
-              imageFileId,
-              {
+        if (!res?.success || !res.alerts?.length) {
+          console.log("✅ No more alerts to send");
+          break;
+        }
+
+        console.log(`📨 Sending batch: ${res.alerts.length}`);
+
+        for (const msg of res.alerts) {
+          const chatId = msg.chat_id; // ✅ freeze for catch scope safety
+
+          try {
+            const imageFileId = process.env.DAILY_PERFORMANCE_IMAGE_FILE_ID || null;
+
+            if (imageFileId) {
+              await bot.telegram.sendPhoto(chatId, imageFileId, {
                 caption: msg.payload.text,
                 parse_mode: msg.payload.parse_mode,
-                reply_markup: msg.payload.reply_markup
-              }
-            );
-          } else {
-            // 💬 Send text only
-            await bot.telegram.sendMessage(
-              msg.chat_id,
-              msg.payload.text,
-              {
+                reply_markup: msg.payload.reply_markup,
+              });
+            } else {
+              await bot.telegram.sendMessage(chatId, msg.payload.text, {
                 parse_mode: msg.payload.parse_mode,
-                reply_markup: msg.payload.reply_markup
+                reply_markup: msg.payload.reply_markup,
+              });
+            }
+
+            await sleep(55);
+          } catch (e) {
+            const errorCode = e.response?.error_code;
+            const errorDesc = e.response?.description || e.message;
+
+            console.error(`Telegram send error (${chatId}):`, errorDesc);
+
+            // ✅ Permanent → update DB & skip
+            if (isPermanentTelegramError(e)) {
+              try {
+                await axiosPost("/bot-user/mark-second-inactive", {
+                  chat_id: chatId,
+                });
+                console.log(`🚫 Marked ${chatId} second bot inactive`);
+              } catch (dbErr) {
+                console.error("❌ Failed to update is_second_bot:", dbErr.message);
               }
-            );
-          }
+              continue;
+            }
 
-          await sleep(55); // safe rate (≈18 msg/sec)
+            // ✅ Rate limit → wait and continue
+            if (errorCode === 429) {
+              const retryAfter = e.response?.parameters?.retry_after || 5;
+              await sleep(retryAfter * 1000);
+              continue;
+            }
 
-        } catch (e) {
-          console.error(
-            "Telegram send error:",
-            e.response?.description || e.message
-          );
-          
-          if (e.response?.error_code === 429) {
-            const retryAfter = e.response.parameters?.retry_after || 5;
-            await sleep(retryAfter * 1000);
+            // ✅ Any other temporary error → just continue
+            continue;
           }
         }
-      }
-      offset += limit;
-      await sleep(2000); // pause between batches
-    }
 
-    console.log("✅ Daily alerts finished");
-  });
+        offset += limit;
+        await sleep(2000);
+      }
+
+      console.log("✅ Daily alerts finished");
+    },
+    { timezone: "Asia/Kolkata" } // ✅ prevents cron-time confusion
+  );
 }

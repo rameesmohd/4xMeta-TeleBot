@@ -1,21 +1,9 @@
 import { axiosGet, axiosPost } from "../secureApi.js";
 import { sendBroadcastMessage } from "../services/sendBroadcastMessage.js";
 import cron from "node-cron";
+import isPermanentTelegramError from "../utils/isPermanentTelegramError.js";
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-function isPermanentTelegramError(err) {
-  const code = err?.response?.error_code;
-  const desc = (err?.response?.description || "").toLowerCase();
-
-  // Common permanent failures (don’t retry)
-  return (
-    code === 403 || code === 400 ||
-    desc.includes("bot was blocked by the user") ||
-    desc.includes("user is deactivated") ||
-    desc.includes("chat not found") ||
-    desc.includes("forbidden: bot was blocked")
-  );
-}
 let isRunning = false;
 
 export default async function startBroadcast(bot) {

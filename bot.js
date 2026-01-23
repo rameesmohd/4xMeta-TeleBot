@@ -12,7 +12,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const managerId = process.env.MANAGER_ID || "000000";
 const botRole = process.env.BOT_ROLE || "APP";
 
-const SEEN_USERS_MAX = 1000;
+const SEEN_USERS_MAX = 500;
 const seenUsers = new Map();
 
 const lastAction = new Map();
