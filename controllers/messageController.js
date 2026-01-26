@@ -61,7 +61,7 @@ const processMessagesWithDelay = async (ctx, messages, userId, sendFunction) => 
         };
 
         // ✅ IMPORTANT: for delayed messages use the telegram-based sender
-        await sendOnboardMessageOnRequest(delayedCtx, msg, chatId);
+        await sendFunction(delayedCtx, msg, chatId);
       } catch (err) {
         console.error(`❌ Onboard send failed (user ${userId}):`, err?.message || err);
       }
