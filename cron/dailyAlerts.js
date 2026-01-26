@@ -88,6 +88,6 @@ export default function startDailyAlerts(bot) {
 
       console.log("✅ Daily alerts finished");
     },
-    { timezone: "Asia/Kolkata" } // ✅ prevents cron-time confusion
+    // { timezone: "Asia/Kolkata" } 
   );
 }
