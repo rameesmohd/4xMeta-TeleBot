@@ -42,7 +42,7 @@ const fetchOnboardByCommand = async (command) => {
 };
 
 /* ---------------- HELPER: Process messages with delay ---------------- */
-const processMessagesWithDelay = async (ctx, messages, userId, sendFunction) => {
+const processMessagesWithDelay = async (ctx, messages, userId) => {
   if (!Array.isArray(messages)) return;
 
   const telegram = ctx.telegram;
@@ -61,7 +61,7 @@ const processMessagesWithDelay = async (ctx, messages, userId, sendFunction) => 
         };
 
         // ✅ IMPORTANT: for delayed messages use the telegram-based sender
-        await sendFunction(delayedCtx, msg, chatId);
+        await sendOnboardMessageOnRequest(delayedCtx, msg, chatId);
       } catch (err) {
         console.error(`❌ Onboard send failed (user ${userId}):`, err?.message || err);
       }
@@ -109,7 +109,7 @@ const fetchOnBoardMessagesOnRequest = async (ctx) => {
       
       // Handle array with delayMinutes
       if (Array.isArray(onboardMsg)) {
-        await processMessagesWithDelay(userCtx, onboardMsg, userId,sendOnboardMessageOnRequest);
+        await processMessagesWithDelay(userCtx, onboardMsg, userId);
       } else {
         // Single message fallback
         await sendOnboardMessageOnRequest(userCtx, onboardMsg);
@@ -154,10 +154,10 @@ const fetchCallbackMessage = async (ctx) => {
       
       // For callback queries with multiple messages, use appropriate send function
       // If first message has delayMinutes, process with delays
-      const hasDelays = onboardMsg.some(m => typeof m.delayMinutes === 'number');
+      const hasDelays = onboardMsg.some(m => m.delayMinutes > 0);
       
       if (hasDelays) {
-        await processMessagesWithDelay(ctx, onboardMsg, userId, sendOnboardMessageOnRequest);
+        await processMessagesWithDelay(ctx, onboardMsg, userId);
       } else {
         // No delays, send first message as edit/reply
         await sendOrEditOnboardMessage(ctx, onboardMsg[0]);
