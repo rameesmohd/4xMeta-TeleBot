@@ -50,7 +50,7 @@ export default function startDailyAlerts(bot) {
               });
             }
 
-            await sleep(55);
+            await sleep(100);
           } catch (e) {
             const errorCode = e.response?.error_code;
             const errorDesc = e.response?.description || e.message;
